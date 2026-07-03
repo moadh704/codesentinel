@@ -5,6 +5,9 @@ import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import pool from './config/database.js';
 
+// Auth routes
+import authRoutes from './routes/authRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -45,6 +48,9 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 app.use(generalLimiter);
+
+// Mount auth routes
+app.use('/api/auth', authRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -88,7 +94,7 @@ const startServer = async () => {
     connection.release();
 
     app.listen(PORT, () => {
-      console.log(`🚀 CodeSentinel server running on port ${PORT}`);
+      console.log(`⎀ CodeSentinel server running on port ${PORT}`);
       console.log(`🌍 Environment: ${NODE_ENV}`);
       console.log(`🔗 CORS allowed: ${FRONTEND_URL}`);
       console.log(`📡 Health check: http://localhost:${PORT}/health`);
