@@ -8,6 +8,9 @@ import pool from './config/database.js';
 // Auth routes
 import authRoutes from './routes/authRoutes.js';
 
+// Scan routes (mounted at /api)
+import scanRoutes from './routes/scanRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -51,6 +54,9 @@ app.use(generalLimiter);
 
 // Mount auth routes
 app.use('/api/auth', authRoutes);
+
+// Mount scan routes under /api (so /api/scan, /api/scans, /api/dashboard work)
+app.use('/api', scanRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
