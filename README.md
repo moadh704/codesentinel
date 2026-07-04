@@ -1,34 +1,92 @@
-# CodeSentinel
+<div align="center">
 
-> AI-powered security code reviewer. Analyze code for vulnerabilities using Claude, GPT-4, or Gemini. Built with Vue 3 + Express + MySQL.
+<br/>
 
-**Full-stack application** following OWASP-inspired analysis, premium Linear.app-like dark UI, and strict security practices.
+<img src="https://via.placeholder.com/80x80/7C5CFF/FFFFFF?text=CS" width="80" height="80" alt="CodeSentinel logo" />
+
+<h1>CodeSentinel</h1>
+
+<p><strong>AI-powered security code reviewer.</strong></p>
+
+<p>
+  <img src="https://img.shields.io/badge/Vue-3-4FC08D?style=flat-square&logo=vuedotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/Vite-5-646CFF?style=flat-square&logo=vite&logoColor=white" />
+  <img src="https://img.shields.io/badge/Node.js-Express-339933?style=flat-square&logo=nodedotjs&logoColor=white" />
+  <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white" />
+  <img src="https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" />
+</p>
+
+<br/>
+
+</div>
+
+---
+
+## What is CodeSentinel?
+
+CodeSentinel is a full-stack AI-powered security code reviewer that helps developers identify vulnerabilities before they reach production.
+
+Analyze code using Claude, GPT-4o, or Gemini. Receive detailed reports with severity ratings, line references, descriptions, and fix suggestions — all in a premium, Linear.app-inspired interface.
+
+---
 
 ## Features
 
-- 🔐 JWT Authentication (register, login, password change)
-- 🤖 Multi-provider AI analysis (Claude Sonnet 4, GPT-4o, Gemini 1.5 Pro)
-- 📊 Dashboard with stats, charts (scans per day, severity breakdown)
-- 🔍 Detailed vulnerability reports with syntax-highlighted snippets
-- 📄 PDF export of reports
-- 📜 Scan history with filters & search
-- ⚙️ User settings: profile, API key overrides, theme & accent picker
-- 🛡️ Hardened backend: Helmet, rate limiting, input validation, parameterized queries
+### Core
+- Multi-provider AI analysis (Claude, GPT-4o, Gemini)
+- Detailed vulnerability reports with code snippets and fixes
+- Syntax highlighting for vulnerable code and suggested fixes
+- PDF export of scan reports
+- Dashboard with stats and charts
+- Scan history with filters and search
+
+### Auth & Security
+- JWT authentication with 7-day expiry
+- bcrypt password hashing (10 rounds)
+- Input validation with express-validator
+- Parameterized SQL queries
+- Rate limiting (general + strict on scans)
+- Helmet security headers
+- Strict CORS
+
+### UI & Experience
+- Premium dark UI (Linear-inspired)
+- Split-screen login/register with particle background
+- Theme switcher (Dark / Dim / Light)
+- Collapsible sidebar
+- Count-up animations on stats
+- Toast notifications and confirm dialogs
+
+---
 
 ## Tech Stack
 
-**Frontend**
-- Vue 3 + Vite + Vue Router + Pinia
-- Tailwind CSS + shadcn-vue
-- ApexCharts, shiki (code highlight), pdfmake, lucide-vue-next
-- Three.js / Canvas for particle login background
+### Frontend — `/client`
+| Layer       | Library                          |
+|-------------|----------------------------------|
+| Framework   | Vue 3 (Composition API)          |
+| Build tool  | Vite 5                           |
+| Styling     | Tailwind CSS + CSS variables     |
+| State       | Pinia                            |
+| Routing     | Vue Router 4                     |
+| HTTP        | Axios                            |
+| Charts      | ApexCharts + vue3-apexcharts     |
+| Icons       | lucide-vue-next                  |
 
-**Backend**
-- Node.js + Express
-- MySQL (mysql2)
-- JWT + bcryptjs
-- Anthropic SDK, OpenAI SDK, Google Generative AI
-- pdfmake (optional server-side)
+**Fonts:** Bricolage Grotesque (headings) · DM Sans (body) · JetBrains Mono (code)
+
+### Backend — `/server`
+| Layer       | Library                          |
+|-------------|----------------------------------|
+| Runtime     | Node.js                          |
+| Framework   | Express                          |
+| Database    | MySQL (mysql2)                   |
+| Auth        | jsonwebtoken + bcryptjs          |
+| AI          | Anthropic, OpenAI, Google Generative AI |
+| Validation  | express-validator                |
+| Security    | helmet, express-rate-limit       |
+
+---
 
 ## Project Structure
 
@@ -50,12 +108,14 @@ codesentinel/
 ├── README.md
 ```
 
+---
+
 ## Getting Started
 
 ### Prerequisites
 - Node.js 20+
-- MySQL 8+ (or Docker)
-- API keys for at least one provider (Anthropic / OpenAI / Google AI Studio)
+- MySQL 8+
+- API keys for at least one AI provider (Anthropic / OpenAI / Google)
 
 ### 1. Clone & Install
 
@@ -67,7 +127,7 @@ cd codesentinel
 cd server
 npm install
 cp .env.example .env
-# Edit .env with your DB creds and AI keys
+# Edit .env with your credentials
 
 # Frontend
 cd ../client
@@ -77,19 +137,17 @@ npm install
 ### 2. Database Setup
 
 ```bash
-# In MySQL
-CREATE DATABASE codesentinel;
+# Create database
+mysql -u root -p -e "CREATE DATABASE codesentinel;"
 
-# Then run the schema
-mysql -u root -p codesentinel < ../server/scripts/init-db.sql
+# Run schema
+mysql -u root -p codesentinel < server/scripts/init-db.sql
 ```
-
-Or use the provided SQL in `server/scripts/init-db.sql`.
 
 ### 3. Run
 
 ```bash
-# Terminal 1: Backend (dev with nodemon)
+# Terminal 1: Backend
 cd server
 npm run dev
 
@@ -98,7 +156,9 @@ cd client
 npm run dev
 ```
 
-Visit `http://localhost:5173` (frontend) and backend on `http://localhost:3000`.
+Open http://localhost:5173
+
+---
 
 ## Environment Variables (server/.env)
 
@@ -117,41 +177,31 @@ DB_PORT=3306
 JWT_SECRET=your-super-secret-jwt-key-change-me
 JWT_EXPIRES_IN=7d
 
-# AI Providers (at least one required)
+# AI Providers
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AIza...
-
-# Frontend URL for CORS
-FRONTEND_URL=http://localhost:5173
 ```
 
-## API Endpoints
-
-See `server/src/routes/` for full list. All protected routes require `Authorization: Bearer <token>`.
+---
 
 ## Security Notes
 
 - Passwords hashed with bcrypt (10 rounds)
-- JWT 7-day expiry
-- Rate limiting on sensitive endpoints
-- Parameterized queries only
-- Helmet.js headers
-- CORS locked to frontend URL
-- Never log API keys
-
-## Development Roadmap
-
-Follows the 11-step build plan documented in conversation history.
-
-## License
-
-MIT — feel free to use and improve.
-
-## Author
-
-Built by moadh704 as a personal project + learning exercise in secure full-stack development.
+- JWT with 7-day expiry
+- Rate limiting on all endpoints (strict on scans)
+- Parameterized queries (no SQL injection)
+- Helmet security headers
+- Strict CORS
 
 ---
 
-**Ready to review code like a senior security engineer.**
+## Development
+
+The project was built step-by-step following a structured 11-step plan.
+
+License: MIT
+
+---
+
+Built by moadh704 as a personal security tool and learning project.
