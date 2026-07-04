@@ -88,9 +88,12 @@
         </div>
 
         <!-- Fix Suggestion -->
-        <div v-if="vuln.fix_suggestion">
-          <div class="text-xs uppercase tracking-wider text-success mb-1.5 font-medium">Recommended Fix</div>
-          <pre class="bg-[#0A0B0D] border border-success/20 p-4 rounded-lg overflow-x-auto text-sm"><code>{{ vuln.fix_suggestion }}</code></pre>
+        <div v-if="vuln.fix_suggestion" class="mt-4 pt-4 border-t border-white/10">
+          <div class="flex items-center gap-2 mb-2">
+            <div class="text-xs uppercase tracking-wider text-success font-medium">Recommended Fix</div>
+            <div class="flex-1 h-px bg-success/20"></div>
+          </div>
+          <pre class="bg-[#0A0B0D] border border-success/30 p-4 rounded-lg overflow-x-auto text-sm font-mono"><code>{{ vuln.fix_suggestion }}</code></pre>
         </div>
       </div>
     </div>
@@ -176,7 +179,7 @@ async function deleteScan() {
   if (!confirm('Are you sure you want to delete this scan?')) return;
   
   try {
-    await scansStore.deleteScan?.(route.params.id); // assuming we add delete to store later
+    await scansStore.deleteScan?.(route.params.id);
     router.push('/history');
   } catch (e) {
     alert('Failed to delete scan');
@@ -184,9 +187,7 @@ async function deleteScan() {
 }
 
 function exportToPDF() {
-  // Placeholder - full implementation in next steps
-  alert('PDF export will be implemented in the next step with full formatting.');
-  // TODO: Use pdfmake to generate nice report
+  alert('PDF export will be implemented with full formatting in a future update.');
 }
 
 onMounted(async () => {

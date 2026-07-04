@@ -1,1 +1,77 @@
-...
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import './tokens.css';
+
+/* Base component styles following DESIGN.md */
+@layer components {
+  .btn {
+    @apply inline-flex items-center justify-center rounded-md px-5 py-2.5 text-sm font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary/50 disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary-hover;
+  }
+
+  .btn-ghost {
+    @apply border border-white/10 hover:bg-card-hover text-text-primary;
+  }
+
+  .card {
+    @apply bg-card border border-white/5 rounded-lg p-6 transition-colors;
+  }
+
+  .input {
+    @apply w-full bg-background border border-white/10 rounded-md px-4 py-2.5 text-sm placeholder:text-text-muted focus:border-primary focus:ring-1 focus:ring-primary/30 transition-all;
+  }
+
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-sm text-[10px] font-mono uppercase tracking-wider;
+  }
+
+  .section-title {
+    @apply font-heading text-2xl font-semibold tracking-tight text-text-primary;
+  }
+}
+
+/* Severity badge colors */
+.severity-critical {
+  @apply bg-danger/10 text-danger border border-danger/20;
+}
+.severity-high {
+  @apply bg-warning/10 text-warning border border-warning/20;
+}
+.severity-medium {
+  @apply bg-info/10 text-info border border-info/20;
+}
+.severity-low {
+  @apply bg-success/10 text-success border border-success/20;
+}
+.severity-info {
+  @apply bg-text-muted/10 text-text-dim border border-white/10;
+}
+
+/* Premium subtle elevation (anti-slop) */
+.card {
+  @apply transition-all duration-200;
+}
+
+.card:hover {
+  @apply border-white/10;
+  background-color: #16181C;
+}
+
+/* Better focus rings */
+input:focus, 
+select:focus, 
+textarea:focus,
+button:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.2);
+}
+
+/* Subtle divider */
+.divider {
+  @apply border-t border-white/10;
+}
