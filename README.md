@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="https://via.placeholder.com/80x80/7C5CFF/FFFFFF?text=CS" width="80" height="80" alt="CodeSentinel logo" />
+<img src="https://raw.githubusercontent.com/moadh704/codesentinel/main/client/public/codesentinel-logo.png" width="80" height="80" alt="CodeSentinel logo" />
 
 <h1>CodeSentinel</h1>
 
@@ -100,12 +100,12 @@ codesentinel/
 │   │   ├── middleware/     # Auth, validation, rate limit
 │   │   ├── routes/         # API routes
 │   │   ├── services/       # AI provider integrations
-│   │   ├── utils/
+│   │   └── utils/
 │   ├── scripts/            # DB init scripts
 │   ├── package.json
-│   ├── .env.example
+│   └── .env.example
 ├── DESIGN.md
-├── README.md
+└── README.md
 ```
 
 ---
