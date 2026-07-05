@@ -108,6 +108,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useScansStore } from '@/stores/scans';
+import pdfMake from 'pdfmake/build/pdfmake';
+import pdfFonts from 'pdfmake/build/vfs_fonts';
+
+// Register fonts for pdfmake
+pdfMake.vfs = pdfFonts.pdfMake.vfs;
 
 const route = useRoute();
 const router = useRouter();
@@ -187,7 +192,149 @@ async function deleteScan() {
 }
 
 function exportToPDF() {
-  alert('PDF export will be implemented with full formatting in a future update.');
+  if (!scan.value || !vulnerabilities.value.length) {
+    alert('No data to export.');
+    return;
+  }
+
+  const docDefinition = {
+    content: [
+      // Header
+      {
+        text: 'CodeSentinel Security Report',
+        style: 'header',
+        margin: [0, 0, 0, 10]
+      },
+      {
+        text: scan.value.title || 'Untitled Scan',
+        style: 'title',
+        margin: [0, 0, 0, 20]
+      },
+
+      // Meta info
+      {
+        columns: [
+          { text: `Language: ${scan.value.language}`, style: 'meta' },
+          { text: `Provider: ${scan.value.provider.toUpperCase()}`, style: 'meta' },
+          { text: `Date: ${formatDate(scan.value.created_at)}`, style: 'meta' }
+        ],
+        margin: [0, 0, 0, 20]
+      },
+
+      // Summary
+      {
+        text: 'Summary',
+        style: 'sectionHeader',
+        margin: [0, 10, 0, 8]
+      },
+      {
+        text: `Total Issues: ${vulnerabilities.value.length}`,
+        margin: [0, 0, 0, 4]
+      },
+      {
+        text: `Critical: ${severityCounts.value.critical}  |  High: ${severityCounts.value.high}  |  Medium: ${severityCounts.value.medium}  |  Low: ${severityCounts.value.low}`,
+        margin: [0, 0, 0, 20]
+      },
+
+      // Vulnerabilities
+      {
+        text: 'Vulnerabilities',
+        style: 'sectionHeader',
+        margin: [0, 10, 0, 10]
+      },
+
+      ...vulnerabilities.value.map((vuln, index) => {
+        const content = [
+          {
+            text: `${index + 1}. ${vuln.title}`,
+            style: 'vulnTitle',
+            margin: [0, 8, 0, 4]
+          },
+          {
+            text: `Severity: ${vuln.severity}   |   Type: ${vuln.type}   ${vuln.line_number ? `| Line: ${vuln.line_number}` : ''}`,
+            style: 'meta',
+            margin: [0, 0, 0, 6]
+          },
+          {
+            text: vuln.description,
+            margin: [0, 0, 0, 8]
+          }
+        ];
+
+        if (vuln.vulnerable_code) {
+          content.push({
+            text: 'Vulnerable Code:',
+            style: 'codeLabel',
+            margin: [0, 4, 0, 2]
+          });
+          content.push({
+            text: vuln.vulnerable_code,
+            style: 'code',
+            margin: [0, 0, 0, 8]
+          });
+        }
+
+        if (vuln.fix_suggestion) {
+          content.push({
+            text: 'Recommended Fix:',
+            style: 'codeLabel',
+            margin: [0, 4, 0, 2]
+          });
+          content.push({
+            text: vuln.fix_suggestion,
+            style: 'code',
+            margin: [0, 0, 0, 12]
+          });
+        }
+
+        return content;
+      }).flat()
+    ],
+
+    styles: {
+      header: {
+        fontSize: 18,
+        bold: true,
+        color: '#7C5CFF'
+      },
+      title: {
+        fontSize: 14,
+        bold: true
+      },
+      sectionHeader: {
+        fontSize: 13,
+        bold: true,
+        color: '#E6E7EA'
+      },
+      vulnTitle: {
+        fontSize: 11,
+        bold: true
+      },
+      meta: {
+        fontSize: 9,
+        color: '#9CA0A8'
+      },
+      codeLabel: {
+        fontSize: 9,
+        bold: true,
+        color: '#22C55E'
+      },
+      code: {
+        fontSize: 8,
+        font: 'Courier',
+        color: '#E6E7EA',
+        background: '#111214'
+      }
+    },
+
+    defaultStyle: {
+      font: 'Helvetica',
+      fontSize: 10,
+      color: '#E6E7EA'
+    }
+  };
+
+  pdfMake.createPdf(docDefinition).download(`codesentinel-report-${scan.value.id}.pdf`);
 }
 
 onMounted(async () => {
