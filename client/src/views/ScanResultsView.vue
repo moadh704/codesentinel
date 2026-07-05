@@ -101,6 +101,17 @@
     <div v-else class="text-center py-12 text-text-dim">
       No vulnerabilities found matching the current filter.
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <Modal 
+      v-model="showDeleteModal"
+      title="Delete Scan"
+      confirm-text="Delete"
+      confirm-class="bg-danger text-white hover:bg-danger/90"
+      @confirm="confirmDelete"
+    >
+      <p>Are you sure you want to delete this scan? This action cannot be undone.</p>
+    </Modal>
   </div>
 </template>
 
@@ -111,6 +122,7 @@ import { useScansStore } from '@/stores/scans';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import CodeBlock from '@/components/CodeBlock.vue';
+import Modal from '@/components/Modal.vue';
 
 // Register fonts for pdfmake
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
@@ -122,6 +134,9 @@ const scansStore = useScansStore();
 const activeFilter = ref('All');
 
 const filterTabs = ['All', 'Critical', 'High', 'Medium', 'Low'];
+
+// Modal state
+const showDeleteModal = ref(false);
 
 const scan = computed(() => scansStore.currentScan);
 const vulnerabilities = computed(() => scansStore.currentVulnerabilities || []);
@@ -182,8 +197,10 @@ function formatDate(dateStr) {
 }
 
 async function deleteScan() {
-  if (!confirm('Are you sure you want to delete this scan?')) return;
-  
+  showDeleteModal.value = true;
+}
+
+async function confirmDelete() {
   try {
     await scansStore.deleteScan?.(route.params.id);
     router.push('/history');
