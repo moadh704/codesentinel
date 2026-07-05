@@ -84,7 +84,7 @@
         <!-- Vulnerable Code -->
         <div v-if="vuln.vulnerable_code" class="mb-4">
           <div class="text-xs uppercase tracking-wider text-text-muted mb-1.5 font-medium">Vulnerable Code</div>
-          <pre class="bg-[#0A0B0D] border border-white/10 p-4 rounded-lg overflow-x-auto text-sm"><code>{{ vuln.vulnerable_code }}</code></pre>
+          <CodeBlock :code="vuln.vulnerable_code" :language="scan?.language" />
         </div>
 
         <!-- Fix Suggestion -->
@@ -93,7 +93,7 @@
             <div class="text-xs uppercase tracking-wider text-success font-medium">Recommended Fix</div>
             <div class="flex-1 h-px bg-success/20"></div>
           </div>
-          <pre class="bg-[#0A0B0D] border border-success/30 p-4 rounded-lg overflow-x-auto text-sm font-mono"><code>{{ vuln.fix_suggestion }}</code></pre>
+          <CodeBlock :code="vuln.fix_suggestion" :language="scan?.language" />
         </div>
       </div>
     </div>
@@ -110,6 +110,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useScansStore } from '@/stores/scans';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
+import CodeBlock from '@/components/CodeBlock.vue';
 
 // Register fonts for pdfmake
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
