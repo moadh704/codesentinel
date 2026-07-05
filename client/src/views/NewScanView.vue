@@ -36,6 +36,7 @@
               <option value="">Select provider...</option>
               <option value="claude">Claude (Anthropic)</option>
               <option value="gpt4">GPT-4o (OpenAI)</option>
+              <option value="groq">Groq (Llama 3.3 - Free & Fast)</option>
               <option value="gemini">Gemini 1.5 Pro (Google)</option>
             </select>
           </div>
@@ -84,6 +85,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useScansStore } from '@/stores/scans';
+import { useUiStore } from '@/stores/ui';
 
 const router = useRouter();
 const scansStore = useScansStore();
@@ -108,6 +110,7 @@ const languages = [
 function getProviderName(p) {
   if (p === 'claude') return 'Claude';
   if (p === 'gpt4') return 'GPT-4o';
+  if (p === 'groq') return 'Groq (Llama)';
   if (p === 'gemini') return 'Gemini';
   return p;
 }
@@ -116,6 +119,7 @@ async function handleScan() {
   if (!code.value || !language.value || !provider.value) return;
 
   loading.value = true;
+  const uiStore = useUiStore();
 
   try {
     const result = await scansStore.createScan({
@@ -125,11 +129,11 @@ async function handleScan() {
       code: code.value,
     });
 
-    // Redirect to results page
+    uiStore.addToast('Scan completed successfully!', 'success');
     router.push(`/scan/${result.scan.id}`);
   } catch (err) {
     const message = err.response?.data?.error || 'Scan failed. Please try again.';
-    alert(message);
+    uiStore.addToast(message, 'error');
   } finally {
     loading.value = false;
   }

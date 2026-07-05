@@ -123,6 +123,7 @@ import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 import CodeBlock from '@/components/CodeBlock.vue';
 import Modal from '@/components/Modal.vue';
+import { useUiStore } from '@/stores/ui';
 
 // Register fonts for pdfmake
 pdfMake.vfs = pdfFonts.pdfMake.vfs;
@@ -130,6 +131,7 @@ pdfMake.vfs = pdfFonts.pdfMake.vfs;
 const route = useRoute();
 const router = useRouter();
 const scansStore = useScansStore();
+const uiStore = useUiStore();
 
 const activeFilter = ref('All');
 
@@ -203,9 +205,10 @@ async function deleteScan() {
 async function confirmDelete() {
   try {
     await scansStore.deleteScan?.(route.params.id);
+    uiStore.addToast('Scan deleted successfully', 'success');
     router.push('/history');
   } catch (e) {
-    alert('Failed to delete scan');
+    uiStore.addToast('Failed to delete scan', 'error');
   }
 }
 
