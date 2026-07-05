@@ -8,9 +8,11 @@
       <div class="h-full flex flex-col">
         <!-- Logo -->
         <div class="p-5 flex items-center gap-3 border-b border-white/10">
-          <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
-            <span class="text-white font-bold text-xl">CS</span>
-          </div>
+          <img 
+            src="/codesentinel-logo.svg" 
+            alt="CodeSentinel" 
+            class="w-8 h-8 flex-shrink-0"
+          />
           <span v-if="!sidebarCollapsed" class="font-heading font-semibold tracking-tight">CodeSentinel</span>
         </div>
 

@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="https://raw.githubusercontent.com/moadh704/codesentinel/main/client/public/codesentinel-logo.png" width="80" height="80" alt="CodeSentinel logo" />
+<img src="client/public/codesentinel-logo.svg" width="80" height="80" alt="CodeSentinel logo" />
 
 <h1>CodeSentinel</h1>
 
@@ -100,12 +100,12 @@ codesentinel/
 │   │   ├── middleware/     # Auth, validation, rate limit
 │   │   ├── routes/         # API routes
 │   │   ├── services/       # AI provider integrations
-│   │   └── utils/
+│   │   ├── utils/
 │   ├── scripts/            # DB init scripts
 │   ├── package.json
-│   └── .env.example
+│   ├── .env.example
 ├── DESIGN.md
-└── README.md
+├── README.md
 ```
 
 ---
@@ -181,6 +181,7 @@ JWT_EXPIRES_IN=7d
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AIza...
+GROQ_API_KEY=gsk_xxx
 ```
 
 ---
