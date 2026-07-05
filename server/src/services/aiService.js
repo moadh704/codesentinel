@@ -34,7 +34,7 @@ function parseAIResponse(text) {
   cleaned = cleaned.trim();
 
   // Try to extract JSON array
-  const jsonMatch = cleaned.match(/\[\s\S]*\]/);
+  const jsonMatch = cleaned.match(/[\s\S]*/);
   if (jsonMatch) {
     cleaned = jsonMatch[0];
   }
@@ -55,7 +55,7 @@ function parseAIResponse(text) {
  * Analyze code using the selected AI provider
  * @param {string} code - Source code to analyze
  * @param {string} language - Programming language
- * @param {'claude' | 'gpt4' | 'gemini'} provider
+ * @param {'claude' | 'gpt4' | 'groq' | 'gemini'} provider
  * @returns {Promise<Array>} Array of vulnerability objects
  */
 export async function analyzeCode(code, language, provider) {
@@ -98,6 +98,28 @@ export async function analyzeCode(code, language, provider) {
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o',
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.1,
+        max_tokens: 4096,
+      });
+
+      rawResponse = completion.choices[0]?.message?.content || '';
+
+    } else if (provider === 'groq') {
+      if (!process.env.GROQ_API_KEY) {
+        throw new Error('GROQ_API_KEY is not configured');
+      }
+
+      const groq = new OpenAI({
+        apiKey: process.env.GROQ_API_KEY,
+        baseURL: 'https://api.groq.com/openai/v1',
+      });
+
+      const completion = await groq.chat.completions.create({
+        model: 'llama-3.3-70b-versatile', // Fast and high quality
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: prompt },
