@@ -214,7 +214,7 @@ async function confirmDelete() {
 
 function exportToPDF() {
   if (!scan.value || !vulnerabilities.value.length) {
-    alert('No data to export.');
+    uiStore.addToast('No data available to export', 'warning');
     return;
   }
 
