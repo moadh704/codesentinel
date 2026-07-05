@@ -16,32 +16,48 @@
 
     <!-- Stats Cards -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-      <div class="card">
+      <div class="card" v-if="scansStore.dashboardStats">
         <div class="text-text-dim text-sm mb-1">Total Scans</div>
         <div class="text-4xl font-semibold tracking-tighter">
           <CountUp :end="stats.totalScans" />
         </div>
       </div>
+      <div class="card" v-else>
+        <Skeleton variant="title" class="mb-2" />
+        <Skeleton variant="card" />
+      </div>
 
-      <div class="card">
+      <div class="card" v-if="scansStore.dashboardStats">
         <div class="text-text-dim text-sm mb-1">Issues Found</div>
         <div class="text-4xl font-semibold tracking-tighter">
           <CountUp :end="stats.totalIssues" />
         </div>
       </div>
+      <div class="card" v-else>
+        <Skeleton variant="title" class="mb-2" />
+        <Skeleton variant="card" />
+      </div>
 
-      <div class="card">
+      <div class="card" v-if="scansStore.dashboardStats">
         <div class="text-text-dim text-sm mb-1">Critical Issues</div>
         <div class="text-4xl font-semibold tracking-tighter text-danger">
           <CountUp :end="stats.severityBreakdown.critical" />
         </div>
       </div>
+      <div class="card" v-else>
+        <Skeleton variant="title" class="mb-2" />
+        <Skeleton variant="card" />
+      </div>
 
-      <div class="card">
+      <div class="card" v-if="scansStore.dashboardStats">
         <div class="text-text-dim text-sm mb-1">High Issues</div>
         <div class="text-4xl font-semibold tracking-tighter text-warning">
           <CountUp :end="stats.severityBreakdown.high" />
         </div>
+      </div>
+      <div class="card" v-else>
+        <Skeleton variant="title" class="mb-2" />
+        <Skeleton variant="card" />
       </div>
     </div>
 
@@ -81,7 +97,7 @@
         <router-link to="/history" class="text-sm text-primary hover:underline">View all →</router-link>
       </div>
 
-      <div v-if="recentScans.length > 0" class="divide-y divide-white/5">
+      <div v-if="scansStore.dashboardStats && recentScans.length > 0" class="divide-y divide-white/5">
         <div 
           v-for="scan in recentScans" 
           :key="scan.id"
@@ -111,6 +127,18 @@
         </div>
       </div>
 
+      <div v-else-if="!scansStore.dashboardStats" class="space-y-4 py-2">
+        <div v-for="i in 3" :key="i" class="flex items-center justify-between py-4 px-4">
+          <div class="flex-1 space-y-2">
+            <Skeleton variant="title" class="w-2/3" />
+            <Skeleton variant="text" class="w-1/3" />
+          </div>
+          <div class="flex items-center gap-4">
+            <Skeleton variant="text" class="w-16" />
+          </div>
+        </div>
+      </div>
+
       <div v-else class="py-8 text-center text-text-dim">
         No scans yet. <router-link to="/scan/new" class="text-primary hover:underline">Start your first scan →</router-link>
       </div>
@@ -123,6 +151,7 @@ import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useScansStore } from '@/stores/scans';
 import CountUp from '@/components/CountUp.vue';
+import Skeleton from '@/components/Skeleton.vue';
 
 const router = useRouter();
 const scansStore = useScansStore();
