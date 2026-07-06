@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="client/public/codesentinel-logo.svg" width="80" height="80" alt="CodeSentinel logo" />
+<img src="https://raw.githubusercontent.com/moadh704/codesentinel/main/client/public/codesentinel-logo.png" width="80" height="80" alt="CodeSentinel logo" />
 
 <h1>CodeSentinel</h1>
 
@@ -95,17 +95,17 @@ codesentinel/
 ├── client/                 # Vue 3 frontend (Vite)
 ├── server/                 # Express backend
 │   ├── src/
-│   │   ├── config/         # DB connection, env
-│   │   ├── controllers/    # Business logic
-│   │   ├── middleware/     # Auth, validation, rate limit
-│   │   ├── routes/         # API routes
-│   │   ├── services/       # AI provider integrations
-│   │   ├── utils/
+│   ├── config/         # DB connection, env
+│   ├── controllers/    # Business logic
+│   ├── middleware/     # Auth, validation, rate limit
+│   ├── routes/         # API routes
+│   ├── services/       # AI provider integrations
+│   └── utils/
 │   ├── scripts/            # DB init scripts
 │   ├── package.json
-│   ├── .env.example
+│   └── .env.example
 ├── DESIGN.md
-├── README.md
+└── README.md
 ```
 
 ---
@@ -181,7 +181,6 @@ JWT_EXPIRES_IN=7d
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AIza...
-GROQ_API_KEY=gsk_xxx
 ```
 
 ---
