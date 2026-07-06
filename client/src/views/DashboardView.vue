@@ -1,89 +1,66 @@
 <template>
-  <div class="p-8 max-w-7xl mx-auto">
+  <div class="max-w-7xl mx-auto px-8 py-10">
     <!-- Header -->
-    <div class="flex items-center justify-between mb-8">
+    <div class="flex items-end justify-between mb-10">
       <div>
-        <h1 class="section-title">Dashboard</h1>
-        <p class="text-text-dim mt-1">Overview of your security scans</p>
+        <h1 class="text-5xl font-heading font-semibold tracking-[-2px]">Dashboard</h1>
+        <p class="text-text-dim mt-2 text-lg">Overview of your security posture</p>
       </div>
-      <router-link 
-        to="/scan/new" 
-        class="btn btn-primary flex items-center gap-2"
-      >
-        <span>New Scan</span>
+      <router-link to="/scan/new" class="btn btn-primary px-8 py-3 text-base">
+        New Security Scan
       </router-link>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-      <div class="card" v-if="scansStore.dashboardStats">
-        <div class="text-text-dim text-sm mb-1">Total Scans</div>
-        <div class="text-4xl font-semibold tracking-tighter">
+    <!-- Stats -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-5 mb-10">
+      <div class="card p-7">
+        <div class="text-sm text-text-dim tracking-wider">TOTAL SCANS</div>
+        <div class="text-6xl font-semibold tracking-tighter mt-3">
           <CountUp :end="stats.totalScans" />
         </div>
       </div>
-      <div class="card" v-else>
-        <Skeleton variant="title" class="mb-2" />
-        <Skeleton variant="card" />
-      </div>
-
-      <div class="card" v-if="scansStore.dashboardStats">
-        <div class="text-text-dim text-sm mb-1">Issues Found</div>
-        <div class="text-4xl font-semibold tracking-tighter">
+      <div class="card p-7">
+        <div class="text-sm text-text-dim tracking-wider">ISSUES FOUND</div>
+        <div class="text-6xl font-semibold tracking-tighter mt-3">
           <CountUp :end="stats.totalIssues" />
         </div>
       </div>
-      <div class="card" v-else>
-        <Skeleton variant="title" class="mb-2" />
-        <Skeleton variant="card" />
-      </div>
-
-      <div class="card" v-if="scansStore.dashboardStats">
-        <div class="text-text-dim text-sm mb-1">Critical Issues</div>
-        <div class="text-4xl font-semibold tracking-tighter text-danger">
+      <div class="card p-7 border-danger/20">
+        <div class="text-sm text-danger tracking-wider">CRITICAL</div>
+        <div class="text-6xl font-semibold tracking-tighter mt-3 text-danger">
           <CountUp :end="stats.severityBreakdown.critical" />
         </div>
       </div>
-      <div class="card" v-else>
-        <Skeleton variant="title" class="mb-2" />
-        <Skeleton variant="card" />
-      </div>
-
-      <div class="card" v-if="scansStore.dashboardStats">
-        <div class="text-text-dim text-sm mb-1">High Issues</div>
-        <div class="text-4xl font-semibold tracking-tighter text-warning">
+      <div class="card p-7 border-warning/20">
+        <div class="text-sm text-warning tracking-wider">HIGH</div>
+        <div class="text-6xl font-semibold tracking-tighter mt-3 text-warning">
           <CountUp :end="stats.severityBreakdown.high" />
         </div>
-      </div>
-      <div class="card" v-else>
-        <Skeleton variant="title" class="mb-2" />
-        <Skeleton variant="card" />
       </div>
     </div>
 
     <!-- Charts -->
-    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-8">
-      <!-- Scans Over Time -->
-      <div class="card lg:col-span-3">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="font-semibold">Scans (Last 7 Days)</h3>
+    <div class="grid grid-cols-1 lg:grid-cols-5 gap-5 mb-10">
+      <div class="card lg:col-span-3 p-7">
+        <div class="font-medium mb-6 flex items-center justify-between">
+          <span>Scans over time</span>
+          <span class="text-xs text-text-muted">Last 7 days</span>
         </div>
         <apexchart 
           v-if="barChartOptions"
           type="bar" 
-          height="280"
+          height="260"
           :options="barChartOptions" 
           :series="barChartSeries" 
         />
       </div>
 
-      <!-- Severity Breakdown -->
-      <div class="card lg:col-span-2">
-        <h3 class="font-semibold mb-4">Severity Breakdown</h3>
+      <div class="card lg:col-span-2 p-7">
+        <div class="font-medium mb-6">Severity Distribution</div>
         <apexchart 
           v-if="pieChartOptions"
-          type="pie" 
-          height="280"
+          type="donut" 
+          height="260"
           :options="pieChartOptions" 
           :series="pieChartSeries" 
         />
@@ -92,55 +69,37 @@
 
     <!-- Recent Scans -->
     <div class="card">
-      <div class="flex items-center justify-between mb-5">
-        <h3 class="font-semibold">Recent Scans</h3>
+      <div class="flex items-center justify-between px-7 pt-7 pb-5">
+        <div class="font-medium">Recent Scans</div>
         <router-link to="/history" class="text-sm text-primary hover:underline">View all →</router-link>
       </div>
 
-      <div v-if="scansStore.dashboardStats && recentScans.length > 0" class="divide-y divide-white/5">
+      <div v-if="recentScans.length > 0" class="divide-y divide-white/10">
         <div 
           v-for="scan in recentScans" 
           :key="scan.id"
-          class="flex items-center justify-between py-4 px-1 hover:bg-card-hover -mx-1 px-4 rounded-lg cursor-pointer transition-colors"
           @click="goToScan(scan.id)"
+          class="flex items-center justify-between px-7 py-5 hover:bg-card-hover transition-colors cursor-pointer"
         >
-          <div class="flex items-center gap-4">
-            <div>
-              <div class="font-medium">{{ scan.title || 'Untitled Scan' }}</div>
-              <div class="text-xs text-text-dim mt-0.5">
-                {{ scan.language }} • {{ scan.provider.toUpperCase() }}
-              </div>
-            </div>
+          <div>
+            <div class="font-medium">{{ scan.title || 'Untitled Scan' }}</div>
+            <div class="text-sm text-text-dim mt-0.5">{{ scan.language }} • {{ scan.provider.toUpperCase() }}</div>
           </div>
-
-          <div class="flex items-center gap-4">
+          <div class="flex items-center gap-6 text-sm">
             <div class="text-right">
-              <div class="text-sm">{{ scan.total_issues }} issues</div>
-              <div class="text-xs text-text-dim">{{ formatDate(scan.created_at) }}</div>
+              <div>{{ scan.total_issues }} issues</div>
+              <div class="text-xs text-text-muted">{{ formatDate(scan.created_at) }}</div>
             </div>
-
-            <div class="flex gap-1.5">
-              <span v-if="scan.critical_count > 0" class="badge severity-critical">{{ scan.critical_count }}C</span>
-              <span v-if="scan.high_count > 0" class="badge severity-high">{{ scan.high_count }}H</span>
+            <div class="flex gap-2">
+              <span v-if="scan.critical_count > 0" class="badge severity-critical text-xs">{{ scan.critical_count }}C</span>
+              <span v-if="scan.high_count > 0" class="badge severity-high text-xs">{{ scan.high_count }}H</span>
             </div>
           </div>
         </div>
       </div>
 
-      <div v-else-if="!scansStore.dashboardStats" class="space-y-4 py-2">
-        <div v-for="i in 3" :key="i" class="flex items-center justify-between py-4 px-4">
-          <div class="flex-1 space-y-2">
-            <Skeleton variant="title" class="w-2/3" />
-            <Skeleton variant="text" class="w-1/3" />
-          </div>
-          <div class="flex items-center gap-4">
-            <Skeleton variant="text" class="w-16" />
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="py-8 text-center text-text-dim">
-        No scans yet. <router-link to="/scan/new" class="text-primary hover:underline">Start your first scan →</router-link>
+      <div v-else class="px-7 py-12 text-center text-text-dim">
+        No scans yet. <router-link to="/scan/new" class="text-primary">Start your first scan →</router-link>
       </div>
     </div>
   </div>
@@ -151,7 +110,6 @@ import { computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useScansStore } from '@/stores/scans';
 import CountUp from '@/components/CountUp.vue';
-import Skeleton from '@/components/Skeleton.vue';
 
 const router = useRouter();
 const scansStore = useScansStore();
@@ -166,46 +124,22 @@ const recentScans = computed(() => scansStore.dashboardStats?.recentScans || [])
 
 const barChartSeries = computed(() => {
   const data = scansStore.dashboardStats?.scansPerDay || [];
-  return [{
-    name: 'Scans',
-    data: data.map(d => d.count)
-  }];
+  return [{ name: 'Scans', data: data.map(d => d.count) }];
 });
 
 const barChartOptions = computed(() => {
   const data = scansStore.dashboardStats?.scansPerDay || [];
   return {
-    chart: {
-      type: 'bar',
-      toolbar: { show: false },
-      foreColor: '#9CA0A8',
-    },
-    plotOptions: {
-      bar: {
-        borderRadius: 6,
-        columnWidth: '55%',
-      }
-    },
+    chart: { type: 'bar', toolbar: { show: false }, foreColor: '#9CA0A8' },
+    plotOptions: { bar: { borderRadius: 6, columnWidth: '50%' } },
     colors: ['#7C5CFF'],
     xaxis: {
-      categories: data.map(d => {
-        const date = new Date(d.date);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      }),
+      categories: data.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
       axisBorder: { show: false },
       axisTicks: { show: false },
     },
-    yaxis: {
-      labels: { style: { colors: '#9CA0A8' } }
-    },
-    grid: {
-      borderColor: 'rgba(255,255,255,0.06)',
-      yaxis: { lines: { show: true } },
-      xaxis: { lines: { show: false } },
-    },
-    tooltip: {
-      theme: 'dark',
-    }
+    grid: { borderColor: 'rgba(255,255,255,0.06)' },
+    tooltip: { theme: 'dark' }
   };
 });
 
@@ -215,30 +149,16 @@ const pieChartSeries = computed(() => {
 });
 
 const pieChartOptions = computed(() => ({
-  chart: {
-    type: 'pie',
-  },
+  chart: { type: 'donut' },
   labels: ['Critical', 'High', 'Medium', 'Low'],
   colors: ['#EF4444', '#F59E0B', '#3B82F6', '#22C55E'],
-  legend: {
-    position: 'bottom',
-    fontSize: '13px',
-    markers: { size: 6 },
-  },
-  dataLabels: {
-    enabled: true,
-    style: { fontSize: '12px' }
-  },
-  tooltip: {
-    theme: 'dark',
-  }
+  legend: { position: 'bottom', fontSize: '13px' },
+  dataLabels: { enabled: true },
+  tooltip: { theme: 'dark' }
 }));
 
 function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric' 
-  });
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function goToScan(id) {
@@ -249,9 +169,3 @@ onMounted(async () => {
   await scansStore.fetchDashboard();
 });
 </script>
-
-<style scoped>
-.apexcharts-canvas {
-  margin: 0 auto;
-}
-</style>
