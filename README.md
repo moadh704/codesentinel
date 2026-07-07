@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
   <img src="https://img.shields.io/badge/AI_Powered-7C5CFF?style=for-the-badge&logo=openai&logoColor=white" />
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge" />
+  <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
 </p>
 
 <br/>
@@ -101,7 +101,7 @@ codesentinel/
 │   ├── controllers/    # Business logic
 │   ├── middleware/     # Auth, validation, rate limit
 │   ├── routes/         # API routes
-│   ├── services/       # AI provider integrations
+│   ├── services/     # AI provider integrations
 │   └── utils/
 │   ├── scripts/            # DB init scripts
 │   ├── package.json
@@ -202,7 +202,7 @@ GOOGLE_API_KEY=AIza...
 
 The project was built step-by-step following a structured 11-step plan.
 
-License: MIT
+**License: Proprietary** — All rights reserved.
 
 ---
 
