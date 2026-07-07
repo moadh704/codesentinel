@@ -75,3 +75,26 @@ button:focus-visible {
 .divider {
   @apply border-t border-white/10;
 }
+
+/* Premium micro-interactions */
+.card, .btn, input, select, textarea {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card:hover {
+  transform: translateY(-1px);
+}
+
+/* Better empty states */
+.empty-state {
+  @apply flex flex-col items-center justify-center py-16 text-center;
+}
+
+.empty-state-icon {
+  @apply text-6xl mb-4 opacity-30;
+}
+
+/* Smooth focus */
+input:focus, select:focus, textarea:focus {
+  box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.1);
+}
