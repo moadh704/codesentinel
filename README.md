@@ -2,7 +2,7 @@
 
 <br/>
 
-<img src="client/public/codesentinel-logo.png" width="80" height="80" alt="CodeSentinel logo" />
+<img src="client/public/codesentinel-logo.svg" width="80" height="80" alt="CodeSentinel logo" />
 
 <h1>CodeSentinel</h1>
 
