@@ -28,9 +28,11 @@
 
         <select v-model="providerFilter" class="input py-3 w-48">
           <option value="">All Providers</option>
+          <option value="deepseek">DeepSeek</option>
           <option value="claude">Claude</option>
           <option value="gpt4">GPT-4o</option>
           <option value="gemini">Gemini</option>
+          <option value="groq">Groq</option>
         </select>
       </div>
     </div>
@@ -130,17 +132,40 @@ function viewScan(id) {
 }
 
 async function deleteScan(id) {
-  if (!confirm('Delete this scan permanently?')) return;
+  const ok = await uiStore.confirm({
+    title: 'Delete scan?',
+    message:
+      'This permanently removes the scan and all of its findings. This cannot be undone.',
+    confirmText: 'Delete scan',
+    cancelText: 'Keep it',
+    variant: 'danger',
+  });
+  if (!ok) return;
+
   try {
     await scansStore.deleteScan(id);
-    uiStore.addToast('Scan deleted successfully', 'success');
+    uiStore.addToast('The scan was removed from your history.', 'success', {
+      title: 'Scan deleted',
+    });
     await scansStore.fetchScans();
   } catch (err) {
-    uiStore.addToast('Failed to delete scan', 'error');
+    uiStore.addToast(
+      err.response?.data?.error || 'Could not delete this scan. Try again.',
+      'error',
+      { title: 'Delete failed' }
+    );
   }
 }
 
 onMounted(async () => {
-  await scansStore.fetchScans();
+  try {
+    await scansStore.fetchScans();
+  } catch (err) {
+    uiStore.addToast(
+      err.response?.data?.error || 'Could not load scan history.',
+      'error',
+      { title: 'Load failed' }
+    );
+  }
 });
 </script>

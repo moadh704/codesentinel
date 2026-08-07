@@ -3,11 +3,13 @@ node_modules/
 client/node_modules/
 server/node_modules/
 
-# Environment
+# Environment & secrets
 .env
 .env.local
 .env.*.local
 server/.env
+token.txt
+**/token.txt
 
 # Logs
 logs
@@ -32,3 +34,26 @@ Thumbs.db
 
 # Misc
 *.tsbuildinfo
+
+# Local debug / ad-hoc test artifacts (do not commit)
+*.err
+*-run.out
+*-run.err
+*-status.txt
+*-debug.txt
+*-check.txt
+boot.txt
+final.txt
+fe-boot.txt
+alive-check.txt
+api-check.txt
+fail-debug.txt
+login.json
+login2.json
+reg.json
+reg2.json
+scan.json
+scan-result.txt
+py-test.txt
+ux-status.txt
+e2e_test.py

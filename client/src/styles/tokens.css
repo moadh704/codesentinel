@@ -1,1 +1,43 @@
-...
+:root {
+  --background: #0a0b0d;
+  --card: #111214;
+  --card-hover: #16181c;
+  --border: rgba(255, 255, 255, 0.06);
+
+  --text-primary: #e6e7ea;
+  --text-dim: #9ca0a8;
+  --text-muted: #6b7280;
+
+  --primary: #7c5cff;
+  --primary-hover: #6b4fe0;
+  --primary-foreground: #ffffff;
+
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  --ring: #7c5cff;
+  --ring-offset: #0a0b0d;
+}
+
+[data-theme='dim'] {
+  --background: #12141a;
+  --card: #1a1d24;
+  --card-hover: #22262f;
+}
+
+[data-theme='light'] {
+  --background: #f6f7f9;
+  --card: #ffffff;
+  --card-hover: #f0f1f4;
+  --border: rgba(0, 0, 0, 0.08);
+  --text-primary: #111214;
+  --text-dim: #5b616b;
+  --text-muted: #8b919a;
+  --ring-offset: #f6f7f9;
+}

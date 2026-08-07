@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?style=for-the-badge&logo=tailwindcss&logoColor=white" />
   <img src="https://img.shields.io/badge/Node.js-Express-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" />
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" />
-  <img src="https://img.shields.io/badge/AI_Powered-7C5CFF?style=for-the-badge&logo=openai&logoColor=white" />
+  <img src="https://img.shields.io/badge/DeepSeek-AI-4D6BFE?style=for-the-badge" />
   <img src="https://img.shields.io/badge/License-Proprietary-red?style=for-the-badge" />
 </p>
 
@@ -28,14 +28,17 @@
 
 CodeSentinel is a full-stack AI-powered security code reviewer that helps developers identify vulnerabilities before they reach production.
 
-Analyze code using Claude, GPT-4o, or Gemini. Receive detailed reports with severity ratings, line references, descriptions, and fix suggestions — all in a premium, Linear.app-inspired interface.
+Paste code (or a snippet), pick a language and AI provider, and get a structured report: severity, type, line references, vulnerable snippets, and fix suggestions — in a Linear-inspired dark UI.
+
+**Supported providers:** DeepSeek (recommended), Claude, GPT-4o, Gemini, and Groq.
 
 ---
 
 ## Features
 
 ### Core
-- Multi-provider AI analysis (Claude, GPT-4o, Gemini)
+- Multi-provider AI analysis (DeepSeek, Claude, GPT-4o, Gemini, Groq)
+- Local **demo/mock mode** when no API keys are set (UI still fully testable)
 - Detailed vulnerability reports with code snippets and fixes
 - Syntax highlighting for vulnerable code and suggested fixes
 - PDF export of scan reports
@@ -55,9 +58,9 @@ Analyze code using Claude, GPT-4o, or Gemini. Receive detailed reports with seve
 - Premium dark UI (Linear-inspired)
 - Split-screen login/register with particle background
 - Theme switcher (Dark / Dim / Light)
-- Collapsible sidebar
+- Collapsible sidebar with larger nav icons
 - Count-up animations on stats
-- Toast notifications and confirm dialogs
+- Toast notifications and custom confirm dialogs (no browser `alert`/`confirm`)
 
 ---
 
@@ -84,7 +87,7 @@ Analyze code using Claude, GPT-4o, or Gemini. Receive detailed reports with seve
 | Framework   | Express                          |
 | Database    | MySQL (mysql2)                   |
 | Auth        | jsonwebtoken + bcryptjs          |
-| AI          | Anthropic, OpenAI, Google Generative AI |
+| AI          | DeepSeek / OpenAI-compatible, Anthropic, OpenAI, Google Generative AI, Groq |
 | Validation  | express-validator                |
 | Security    | helmet, express-rate-limit       |
 
@@ -97,15 +100,16 @@ codesentinel/
 ├── client/                 # Vue 3 frontend (Vite)
 ├── server/                 # Express backend
 │   ├── src/
-│   ├── config/         # DB connection, env
-│   ├── controllers/    # Business logic
-│   ├── middleware/     # Auth, validation, rate limit
-│   ├── routes/         # API routes
-│   ├── services/     # AI provider integrations
-│   └── utils/
+│   │   ├── config/         # DB connection, env
+│   │   ├── controllers/    # Business logic
+│   │   ├── middleware/     # Auth, validation, rate limit
+│   │   ├── routes/         # API routes
+│   │   ├── services/       # AI provider integrations
+│   │   └── utils/
 │   ├── scripts/            # DB init scripts
 │   ├── package.json
 │   └── .env.example
+├── start-local.bat         # Windows: start MySQL + API + UI
 ├── DESIGN.md
 └── README.md
 ```
@@ -116,8 +120,8 @@ codesentinel/
 
 ### Prerequisites
 - Node.js 20+
-- MySQL 8+
-- API keys for at least one AI provider (Anthropic / OpenAI / Google)
+- MySQL 8+ (or MariaDB / XAMPP MySQL)
+- Optional: API key for at least one AI provider (DeepSeek recommended)
 
 ### 1. Clone & Install
 
@@ -129,12 +133,15 @@ cd codesentinel
 cd server
 npm install
 cp .env.example .env
-# Edit .env with your credentials
+# Edit .env with your DB password and optional AI keys
 
 # Frontend
 cd ../client
 npm install
 ```
+
+> On Windows, if peer dependency warnings appear for `vue3-apexcharts`, use:
+> `npm install --legacy-peer-deps`
 
 ### 2. Database Setup
 
@@ -142,11 +149,13 @@ npm install
 # Create database
 mysql -u root -p -e "CREATE DATABASE codesentinel;"
 
-# Run schema
+# Run schema (includes deepseek / groq provider enum values)
 mysql -u root -p codesentinel < server/scripts/init-db.sql
 ```
 
 ### 3. Run
+
+**Option A — two terminals**
 
 ```bash
 # Terminal 1: Backend
@@ -158,11 +167,23 @@ cd client
 npm run dev
 ```
 
-Open http://localhost:5173
+**Option B — Windows helper**
+
+```bat
+start-local.bat
+```
+
+Starts MySQL (if not already running via XAMPP), API on `:3000`, and UI on `:5173`, then opens the login page.
+
+Open **http://127.0.0.1:5173** (prefer `127.0.0.1` over `localhost` if CORS or cookies misbehave).
+
+### Demo mode
+
+If **no** AI provider keys are set in `server/.env`, scans return local mock findings so you can exercise the full UI without paid APIs. Add `DEEPSEEK_API_KEY` (or another provider key) and restart the API for real analysis.
 
 ---
 
-## Environment Variables (server/.env)
+## Environment Variables (`server/.env`)
 
 ```env
 PORT=3000
@@ -179,11 +200,20 @@ DB_PORT=3306
 JWT_SECRET=your-super-secret-jwt-key-change-me
 JWT_EXPIRES_IN=7d
 
-# AI Providers
+# AI Providers (at least one for real scans)
+DEEPSEEK_API_KEY=sk-...
+DEEPSEEK_BASE_URL=https://api.deepseek.com
+DEEPSEEK_MODEL=deepseek-chat
 ANTHROPIC_API_KEY=sk-ant-...
 OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AIza...
+GROQ_API_KEY=
+
+# CORS
+FRONTEND_URL=http://localhost:5173,http://127.0.0.1:5173
 ```
+
+Copy from `server/.env.example`. **Never commit** `server/.env`.
 
 ---
 
@@ -195,15 +225,16 @@ GOOGLE_API_KEY=AIza...
 - Parameterized queries (no SQL injection)
 - Helmet security headers
 - Strict CORS
+- Secrets and local debug artifacts are gitignored
 
 ---
 
 ## Development
 
-The project was built step-by-step following a structured 11-step plan.
+The project was built step-by-step following a structured plan, then hardened for local Windows/XAMPP setups and multi-provider AI (including DeepSeek).
 
 **License: Proprietary** — All rights reserved.
 
 ---
 
-Built by moadh704 as a personal security tool and learning project.
+Built by [moadh704](https://github.com/moadh704) as a personal security tool and learning project.

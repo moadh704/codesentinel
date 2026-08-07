@@ -78,8 +78,9 @@
 
 <script setup>
 import { ref } from 'vue';
-import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/stores/auth';
+import { useUiStore } from '@/stores/ui';
 import ParticleBackground from '@/components/ParticleBackground.vue';
 import PasswordStrength from '@/components/PasswordStrength.vue';
 
@@ -89,10 +90,16 @@ const password = ref('');
 const loading = ref(false);
 
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const router = useRouter();
 
 async function handleRegister() {
-  if (!name.value || !email.value || password.value.length < 8) return;
+  if (!name.value || !email.value || password.value.length < 8) {
+    uiStore.addToast('Name, email, and a password of at least 8 characters are required.', 'warning', {
+      title: 'Missing details',
+    });
+    return;
+  }
 
   loading.value = true;
   try {
@@ -101,10 +108,19 @@ async function handleRegister() {
       email: email.value,
       password: password.value,
     });
+    uiStore.addToast('Your account is ready.', 'success', {
+      title: 'Welcome to CodeSentinel',
+      duration: 3000,
+    });
     router.push('/');
   } catch (err) {
-    const message = err.response?.data?.error || 'Registration failed';
-    alert(message);
+    let message = err.response?.data?.error || 'Registration failed';
+    if (err.response?.data?.details?.length) {
+      message += ': ' + err.response.data.details.map((d) => d.msg).join(', ');
+    } else if (err.code === 'ERR_NETWORK' || !err.response) {
+      message = 'Cannot reach the API. Start the backend on http://127.0.0.1:3000';
+    }
+    uiStore.addToast(message, 'error', { title: 'Could not create account' });
   } finally {
     loading.value = false;
   }

@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS scans (
   user_id INT NOT NULL,
   title VARCHAR(255),
   language VARCHAR(50) NOT NULL,
-  provider ENUM('claude', 'gpt4', 'gemini') NOT NULL,
+  provider ENUM('claude', 'gpt4', 'gemini', 'deepseek', 'groq') NOT NULL,
   code TEXT NOT NULL,
   status ENUM('pending', 'completed', 'failed') DEFAULT 'pending',
   total_issues INT DEFAULT 0,

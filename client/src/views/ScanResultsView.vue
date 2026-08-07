@@ -233,20 +233,36 @@ function formatDate(dateStr) {
 }
 
 async function deleteScan() {
-  if (!confirm('Are you sure you want to delete this scan?')) return;
-  
+  const ok = await uiStore.confirm({
+    title: 'Delete this scan?',
+    message:
+      'You will lose this report and all vulnerability details. This cannot be undone.',
+    confirmText: 'Delete scan',
+    cancelText: 'Cancel',
+    variant: 'danger',
+  });
+  if (!ok) return;
+
   try {
     await scansStore.deleteScan?.(route.params.id);
-    uiStore.addToast('Scan deleted successfully', 'success');
+    uiStore.addToast('Redirecting to your scan history.', 'success', {
+      title: 'Scan deleted',
+    });
     router.push('/history');
   } catch (e) {
-    uiStore.addToast('Failed to delete scan', 'error');
+    uiStore.addToast(
+      e.response?.data?.error || 'Could not delete this scan. Try again.',
+      'error',
+      { title: 'Delete failed' }
+    );
   }
 }
 
 function exportToPDF() {
   if (!scan.value || !vulnerabilities.value.length) {
-    uiStore.addToast('No data available to export', 'warning');
+    uiStore.addToast('Run a scan with findings first, then export.', 'warning', {
+      title: 'Nothing to export',
+    });
     return;
   }
 
@@ -293,12 +309,17 @@ function exportToPDF() {
   };
 
   pdfMake.createPdf(docDefinition).download(`CodeSentinel_Report_${scan.value.id}.pdf`);
-  uiStore.addToast('PDF report downloaded successfully', 'success');
+  uiStore.addToast('Your report was downloaded.', 'success', {
+    title: 'PDF ready',
+  });
 }
 
 function copyToClipboard(text) {
   navigator.clipboard.writeText(text);
-  uiStore.addToast('Copied to clipboard', 'success');
+  uiStore.addToast('Snippet copied.', 'success', {
+    title: 'Copied',
+    duration: 2000,
+  });
 }
 
 onMounted(async () => {

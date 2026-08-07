@@ -55,16 +55,123 @@ function parseAIResponse(text) {
  * Analyze code using the selected AI provider
  * @param {string} code - Source code to analyze
  * @param {string} language - Programming language
- * @param {'claude' | 'gpt4' | 'groq' | 'gemini'} provider
+ * @param {'claude' | 'gpt4' | 'groq' | 'gemini' | 'deepseek'} provider
  * @returns {Promise<Array>} Array of vulnerability objects
  */
+function mockFindings(code, language) {
+  const lower = (code || '').toLowerCase();
+  const findings = [];
+
+  if (
+    lower.includes('password') ||
+    lower.includes('secret') ||
+    lower.includes('api_key') ||
+    lower.includes('apikey')
+  ) {
+    findings.push({
+      title: 'Possible hardcoded secret',
+      severity: 'high',
+      type: 'Hardcoded Secret',
+      line_number: 1,
+      description:
+        'Demo finding (no AI API key configured). The code appears to reference secrets or passwords in source.',
+      vulnerable_code: code.slice(0, 200),
+      fix_suggestion:
+        'Move secrets to environment variables or a secrets manager. Never commit credentials.',
+    });
+  }
+
+  if (
+    lower.includes('select ') &&
+    (lower.includes('${') || lower.includes('+') || lower.includes('query('))
+  ) {
+    findings.push({
+      title: 'Possible SQL injection',
+      severity: 'critical',
+      type: 'SQL Injection',
+      line_number: 1,
+      description:
+        'Demo finding (no AI API key configured). String-built SQL can allow injection.',
+      vulnerable_code: code.slice(0, 200),
+      fix_suggestion: 'Use parameterized queries / prepared statements only.',
+    });
+  }
+
+  if (lower.includes('innerhtml') || lower.includes('document.write')) {
+    findings.push({
+      title: 'Possible XSS sink',
+      severity: 'high',
+      type: 'XSS',
+      line_number: 1,
+      description:
+        'Demo finding (no AI API key configured). Writing untrusted HTML into the DOM is risky.',
+      vulnerable_code: code.slice(0, 200),
+      fix_suggestion: 'Prefer textContent or a sanitizer library for untrusted input.',
+    });
+  }
+
+  if (findings.length === 0) {
+    findings.push({
+      title: 'Demo analysis (no AI key)',
+      severity: 'info',
+      type: 'Info',
+      line_number: null,
+      description: `Local demo mode for ${language}. No real AI provider key is set in server/.env, so this is a placeholder finding so you can test the UI.`,
+      vulnerable_code: code.slice(0, 120) || null,
+      fix_suggestion:
+        'Add DEEPSEEK_API_KEY (or another provider key) to server/.env and restart the API for real analysis.',
+    });
+  }
+
+  return findings;
+}
+
+function hasAnyProviderKey() {
+  return Boolean(
+    process.env.DEEPSEEK_API_KEY ||
+      process.env.ANTHROPIC_API_KEY ||
+      process.env.OPENAI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      process.env.GROQ_API_KEY
+  );
+}
+
 export async function analyzeCode(code, language, provider) {
   const prompt = `Language: ${language}\n\nCode to analyze:\n\n${code}`;
 
   let rawResponse = '';
 
+  // Mock only when no provider keys are configured
+  if (!hasAnyProviderKey()) {
+    console.log('[ai] Using local mock findings (no API keys configured)');
+    return mockFindings(code, language);
+  }
+
   try {
-    if (provider === 'claude') {
+    if (provider === 'deepseek') {
+      if (!process.env.DEEPSEEK_API_KEY) {
+        throw new Error('DEEPSEEK_API_KEY is not configured in server/.env');
+      }
+
+      // DeepSeek is OpenAI-compatible
+      const deepseek = new OpenAI({
+        apiKey: process.env.DEEPSEEK_API_KEY,
+        baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
+      });
+
+      const model = process.env.DEEPSEEK_MODEL || 'deepseek-chat';
+      const completion = await deepseek.chat.completions.create({
+        model,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: prompt },
+        ],
+        temperature: 0.1,
+        max_tokens: 4096,
+      });
+
+      rawResponse = completion.choices[0]?.message?.content || '';
+    } else if (provider === 'claude') {
       if (!process.env.ANTHROPIC_API_KEY) {
         throw new Error('ANTHROPIC_API_KEY is not configured');
       }
@@ -74,7 +181,7 @@ export async function analyzeCode(code, language, provider) {
       });
 
       const message = await anthropic.messages.create({
-        model: 'claude-sonnet-4-6', // Using user-specified model
+        model: 'claude-sonnet-4-6',
         max_tokens: 4096,
         system: SYSTEM_PROMPT,
         messages: [
@@ -86,7 +193,6 @@ export async function analyzeCode(code, language, provider) {
       });
 
       rawResponse = message.content[0]?.text || '';
-
     } else if (provider === 'gpt4') {
       if (!process.env.OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY is not configured');
@@ -107,7 +213,6 @@ export async function analyzeCode(code, language, provider) {
       });
 
       rawResponse = completion.choices[0]?.message?.content || '';
-
     } else if (provider === 'groq') {
       if (!process.env.GROQ_API_KEY) {
         throw new Error('GROQ_API_KEY is not configured');
@@ -119,7 +224,7 @@ export async function analyzeCode(code, language, provider) {
       });
 
       const completion = await groq.chat.completions.create({
-        model: 'llama-3.3-70b-versatile', // Fast and high quality
+        model: 'llama-3.3-70b-versatile',
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: prompt },
@@ -129,7 +234,6 @@ export async function analyzeCode(code, language, provider) {
       });
 
       rawResponse = completion.choices[0]?.message?.content || '';
-
     } else if (provider === 'gemini') {
       if (!process.env.GOOGLE_API_KEY) {
         throw new Error('GOOGLE_API_KEY is not configured');
@@ -151,7 +255,6 @@ export async function analyzeCode(code, language, provider) {
       });
 
       rawResponse = result.response.text() || '';
-
     } else {
       throw new Error(`Unsupported provider: ${provider}`);
     }

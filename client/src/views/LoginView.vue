@@ -79,6 +79,7 @@
 <script setup>
 import { ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useUiStore } from '@/stores/ui';
 import { useRouter } from 'vue-router';
 import ParticleBackground from '@/components/ParticleBackground.vue';
 
@@ -87,6 +88,7 @@ const password = ref('');
 const loading = ref(false);
 
 const authStore = useAuthStore();
+const uiStore = useUiStore();
 const router = useRouter();
 
 async function handleLogin() {
@@ -98,10 +100,20 @@ async function handleLogin() {
       email: email.value,
       password: password.value,
     });
+    uiStore.addToast('Welcome back.', 'success', { title: 'Signed in', duration: 2500 });
     router.push('/');
   } catch (err) {
-    const message = err.response?.data?.error || 'Login failed. Please try again.';
-    alert(message);
+    let message = 'Check your email and password, then try again.';
+    if (err.response?.data?.error) {
+      message = err.response.data.error;
+      if (err.response.data.details?.length) {
+        message += ': ' + err.response.data.details.map((d) => d.msg).join(', ');
+      }
+    } else if (err.code === 'ERR_NETWORK' || !err.response) {
+      message =
+        'Cannot reach the API. Start the backend on http://127.0.0.1:3000';
+    }
+    uiStore.addToast(message, 'error', { title: 'Sign-in failed' });
   } finally {
     loading.value = false;
   }

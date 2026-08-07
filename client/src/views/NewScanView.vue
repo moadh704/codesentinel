@@ -32,9 +32,11 @@
             <label class="block text-sm font-medium text-text-dim mb-2">AI Provider</label>
             <select v-model="provider" class="input py-3.5 text-base" required>
               <option value="">Choose AI model...</option>
-              <option value="claude">Claude (Anthropic) — Recommended</option>
+              <option value="deepseek">DeepSeek — Recommended</option>
+              <option value="claude">Claude (Anthropic)</option>
               <option value="gpt4">GPT-4o (OpenAI)</option>
               <option value="gemini">Gemini 1.5 Pro (Google)</option>
+              <option value="groq">Groq (Llama)</option>
             </select>
           </div>
         </div>
@@ -100,9 +102,11 @@ const languages = [
 ];
 
 function getProviderName(p) {
+  if (p === 'deepseek') return 'DeepSeek';
   if (p === 'claude') return 'Claude';
   if (p === 'gpt4') return 'GPT-4o';
   if (p === 'gemini') return 'Gemini';
+  if (p === 'groq') return 'Groq';
   return p;
 }
 
@@ -119,11 +123,18 @@ async function handleScan() {
       code: code.value,
     });
 
-    uiStore.addToast('Scan completed successfully!', 'success');
+    uiStore.addToast('Opening your security report…', 'success', {
+      title: 'Scan complete',
+      duration: 2500,
+    });
     router.push(`/scan/${result.scan.id}`);
   } catch (err) {
-    const message = err.response?.data?.error || 'Scan failed. Please try again.';
-    uiStore.addToast(message, 'error');
+    const message =
+      err.response?.data?.error ||
+      (err.code === 'ERR_NETWORK'
+        ? 'Cannot reach the API. Is the backend running?'
+        : 'Scan failed. Please try again.');
+    uiStore.addToast(message, 'error', { title: 'Scan failed' });
   } finally {
     loading.value = false;
   }

@@ -12,9 +12,11 @@ export const createScan = async (req, res) => {
     return res.status(400).json({ error: 'code, language and provider are required' });
   }
 
-  const validProviders = ['claude', 'gpt4', 'gemini'];
+  const validProviders = ['claude', 'gpt4', 'gemini', 'deepseek', 'groq'];
   if (!validProviders.includes(provider)) {
-    return res.status(400).json({ error: 'Invalid provider. Use claude, gpt4 or gemini' });
+    return res.status(400).json({
+      error: 'Invalid provider. Use deepseek, claude, gpt4, gemini, or groq',
+    });
   }
 
   let scanId;

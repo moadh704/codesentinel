@@ -55,7 +55,7 @@
             :key="t"
             @click="setTheme(t)"
             class="px-5 py-2 rounded-lg border transition-all flex-1"
-            :class="ui.theme === t ? 'border-primary bg-primary/10' : 'border-white/10 hover:bg-card-hover'"
+            :class="uiStore.theme === t ? 'border-primary bg-primary/10' : 'border-white/10 hover:bg-card-hover'"
           >
             {{ t.charAt(0).toUpperCase() + t.slice(1) }}
           </button>
@@ -67,9 +67,11 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useUiStore } from '@/stores/ui';
 
+const router = useRouter();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
@@ -87,15 +89,22 @@ function setTheme(theme) {
 }
 
 async function updateProfile() {
-  // Placeholder - extend later
-  alert('Profile update coming in future steps.');
+  uiStore.addToast(
+    'Profile name is set when you register. Full profile editing will come in a later update.',
+    'info',
+    { title: 'Not available yet' }
+  );
 }
 
 function saveApiKeys() {
   localStorage.setItem('api_claude', apiKeys.value.claude);
   localStorage.setItem('api_openai', apiKeys.value.openai);
   localStorage.setItem('api_gemini', apiKeys.value.gemini);
-  alert('API keys saved locally. They will be used by the frontend if configured.');
+  uiStore.addToast(
+    'Stored in this browser only. Server AI keys still come from server/.env.',
+    'success',
+    { title: 'Keys saved' }
+  );
 }
 
 onMounted(() => {

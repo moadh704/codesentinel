@@ -166,6 +166,10 @@ function goToScan(id) {
 }
 
 onMounted(async () => {
-  await scansStore.fetchDashboard();
+  try {
+    await scansStore.fetchDashboard();
+  } catch (err) {
+    console.error('Dashboard load failed', err);
+  }
 });
 </script>
