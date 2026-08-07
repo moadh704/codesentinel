@@ -38,6 +38,14 @@
               <option value="gemini">Gemini 1.5 Pro (Google)</option>
               <option value="groq">Groq (Llama)</option>
             </select>
+            <p v-if="provider && !hasKeyForSelected" class="text-xs text-amber-400/90 mt-2">
+              No key for this provider in Settings. Scan will use server
+              <code class="opacity-80">.env</code> if set, otherwise demo mode.
+              <router-link to="/settings" class="text-primary underline ml-1">Add key</router-link>
+            </p>
+            <p v-else-if="provider && hasKeyForSelected" class="text-xs text-emerald-400/80 mt-2">
+              Using API key from Settings for {{ getProviderName(provider) }}.
+            </p>
           </div>
         </div>
 
@@ -82,10 +90,11 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useScansStore } from '@/stores/scans';
 import { useUiStore } from '@/stores/ui';
+import { getApiKeyForProvider, hasApiKeyForProvider } from '@/lib/apiKeys';
 
 const router = useRouter();
 const scansStore = useScansStore();
@@ -100,6 +109,10 @@ const loading = ref(false);
 const languages = [
   'JavaScript', 'TypeScript', 'Python', 'PHP', 'Go', 'Java', 'Ruby', 'C/C++'
 ];
+
+const hasKeyForSelected = computed(() =>
+  provider.value ? hasApiKeyForProvider(provider.value) : false
+);
 
 function getProviderName(p) {
   if (p === 'deepseek') return 'DeepSeek';
@@ -116,11 +129,14 @@ async function handleScan() {
   loading.value = true;
 
   try {
+    const apiKey = getApiKeyForProvider(provider.value);
     const result = await scansStore.createScan({
       title: title.value || null,
       language: language.value,
       provider: provider.value,
       code: code.value,
+      // Optional: UI key from Settings; server falls back to .env
+      ...(apiKey ? { apiKey } : {}),
     });
 
     uiStore.addToast('Opening your security report…', 'success', {
@@ -130,6 +146,7 @@ async function handleScan() {
     router.push(`/scan/${result.scan.id}`);
   } catch (err) {
     const message =
+      err.response?.data?.details ||
       err.response?.data?.error ||
       (err.code === 'ERR_NETWORK'
         ? 'Cannot reach the API. Is the backend running?'

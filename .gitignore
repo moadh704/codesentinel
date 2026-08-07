@@ -57,3 +57,5 @@ scan-result.txt
 py-test.txt
 ux-status.txt
 e2e_test.py
+mysqld.pid
+login-fix.txt

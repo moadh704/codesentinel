@@ -46,18 +46,11 @@ function parseAIResponse(text) {
     }
     return parsed;
   } catch (err) {
-    console.error('Failed to parse AI response:', cleaned);
+    console.error('Failed to parse AI response:', cleaned?.slice?.(0, 500));
     throw new Error('AI returned invalid JSON format');
   }
 }
 
-/**
- * Analyze code using the selected AI provider
- * @param {string} code - Source code to analyze
- * @param {string} language - Programming language
- * @param {'claude' | 'gpt4' | 'groq' | 'gemini' | 'deepseek'} provider
- * @returns {Promise<Array>} Array of vulnerability objects
- */
 function mockFindings(code, language) {
   const lower = (code || '').toLowerCase();
   const findings = [];
@@ -116,46 +109,63 @@ function mockFindings(code, language) {
       severity: 'info',
       type: 'Info',
       line_number: null,
-      description: `Local demo mode for ${language}. No real AI provider key is set in server/.env, so this is a placeholder finding so you can test the UI.`,
+      description: `Local demo mode for ${language}. No API key for this provider (Settings or server/.env), so this is a placeholder finding so you can test the UI.`,
       vulnerable_code: code.slice(0, 120) || null,
       fix_suggestion:
-        'Add DEEPSEEK_API_KEY (or another provider key) to server/.env and restart the API for real analysis.',
+        'Add a key in Settings → AI Provider API Keys, or set the matching key in server/.env, then run the scan again.',
     });
   }
 
   return findings;
 }
 
-function hasAnyProviderKey() {
-  return Boolean(
-    process.env.DEEPSEEK_API_KEY ||
-      process.env.ANTHROPIC_API_KEY ||
-      process.env.OPENAI_API_KEY ||
-      process.env.GOOGLE_API_KEY ||
-      process.env.GROQ_API_KEY
-  );
+const ENV_KEY_BY_PROVIDER = {
+  deepseek: 'DEEPSEEK_API_KEY',
+  claude: 'ANTHROPIC_API_KEY',
+  gpt4: 'OPENAI_API_KEY',
+  gemini: 'GOOGLE_API_KEY',
+  groq: 'GROQ_API_KEY',
+};
+
+/**
+ * Prefer request key from Settings UI; fall back to server env for that provider.
+ * @param {string} provider
+ * @param {string} [requestApiKey]
+ * @returns {string}
+ */
+function resolveApiKey(provider, requestApiKey) {
+  const fromRequest = typeof requestApiKey === 'string' ? requestApiKey.trim() : '';
+  if (fromRequest) return fromRequest;
+
+  const envName = ENV_KEY_BY_PROVIDER[provider];
+  if (!envName) return '';
+  return (process.env[envName] || '').trim();
 }
 
-export async function analyzeCode(code, language, provider) {
+/**
+ * Analyze code using the selected AI provider
+ * @param {string} code - Source code to analyze
+ * @param {string} language - Programming language
+ * @param {'claude' | 'gpt4' | 'groq' | 'gemini' | 'deepseek'} provider
+ * @param {string} [requestApiKey] - Optional key from client Settings
+ * @returns {Promise<Array>} Array of vulnerability objects
+ */
+export async function analyzeCode(code, language, provider, requestApiKey) {
   const prompt = `Language: ${language}\n\nCode to analyze:\n\n${code}`;
+  const apiKey = resolveApiKey(provider, requestApiKey);
 
-  let rawResponse = '';
-
-  // Mock only when no provider keys are configured
-  if (!hasAnyProviderKey()) {
-    console.log('[ai] Using local mock findings (no API keys configured)');
+  // Mock only when neither UI key nor server env key is available for this provider
+  if (!apiKey) {
+    console.log(`[ai] Mock findings (no key for provider=${provider})`);
     return mockFindings(code, language);
   }
 
+  let rawResponse = '';
+
   try {
     if (provider === 'deepseek') {
-      if (!process.env.DEEPSEEK_API_KEY) {
-        throw new Error('DEEPSEEK_API_KEY is not configured in server/.env');
-      }
-
-      // DeepSeek is OpenAI-compatible
       const deepseek = new OpenAI({
-        apiKey: process.env.DEEPSEEK_API_KEY,
+        apiKey,
         baseURL: process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com',
       });
 
@@ -172,13 +182,7 @@ export async function analyzeCode(code, language, provider) {
 
       rawResponse = completion.choices[0]?.message?.content || '';
     } else if (provider === 'claude') {
-      if (!process.env.ANTHROPIC_API_KEY) {
-        throw new Error('ANTHROPIC_API_KEY is not configured');
-      }
-
-      const anthropic = new Anthropic({
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      });
+      const anthropic = new Anthropic({ apiKey });
 
       const message = await anthropic.messages.create({
         model: 'claude-sonnet-4-6',
@@ -194,13 +198,7 @@ export async function analyzeCode(code, language, provider) {
 
       rawResponse = message.content[0]?.text || '';
     } else if (provider === 'gpt4') {
-      if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY is not configured');
-      }
-
-      const openai = new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      });
+      const openai = new OpenAI({ apiKey });
 
       const completion = await openai.chat.completions.create({
         model: 'gpt-4o',
@@ -214,12 +212,8 @@ export async function analyzeCode(code, language, provider) {
 
       rawResponse = completion.choices[0]?.message?.content || '';
     } else if (provider === 'groq') {
-      if (!process.env.GROQ_API_KEY) {
-        throw new Error('GROQ_API_KEY is not configured');
-      }
-
       const groq = new OpenAI({
-        apiKey: process.env.GROQ_API_KEY,
+        apiKey,
         baseURL: 'https://api.groq.com/openai/v1',
       });
 
@@ -235,11 +229,7 @@ export async function analyzeCode(code, language, provider) {
 
       rawResponse = completion.choices[0]?.message?.content || '';
     } else if (provider === 'gemini') {
-      if (!process.env.GOOGLE_API_KEY) {
-        throw new Error('GOOGLE_API_KEY is not configured');
-      }
-
-      const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+      const genAI = new GoogleGenerativeAI(apiKey);
       const model = genAI.getGenerativeModel({
         model: 'gemini-1.5-pro',
         systemInstruction: SYSTEM_PROMPT,
@@ -270,8 +260,8 @@ export async function analyzeCode(code, language, provider) {
     });
 
     return vulnerabilities;
-
   } catch (error) {
+    // Never log the raw API key
     console.error(`AI analysis failed for provider ${provider}:`, error.message);
     throw new Error(`AI analysis failed: ${error.message}`);
   }

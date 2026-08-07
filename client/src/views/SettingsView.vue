@@ -6,7 +6,7 @@
       <!-- Profile -->
       <div class="card">
         <h2 class="font-semibold mb-5">Profile</h2>
-        
+
         <div class="space-y-6">
           <div>
             <label class="block text-sm text-text-dim mb-1.5">Name</label>
@@ -24,34 +24,80 @@
 
       <!-- API Keys -->
       <div class="card">
-        <h2 class="font-semibold mb-5">AI Provider API Keys</h2>
-        <p class="text-sm text-text-dim mb-5">Keys are stored in browser (localStorage). Never shared.</p>
+        <h2 class="font-semibold mb-2">AI Provider API Keys</h2>
+        <p class="text-sm text-text-dim mb-5">
+          Keys are saved in this browser and sent with each scan you run (authenticated).
+          They are not written to the database. Server
+          <code class="text-xs bg-white/5 px-1.5 py-0.5 rounded">.env</code>
+          keys are used as a fallback if a field is empty.
+        </p>
 
         <div class="space-y-5">
           <div>
-            <label class="block text-sm text-text-dim mb-1.5">Anthropic (Claude)</label>
-            <input v-model="apiKeys.claude" type="password" class="input" placeholder="sk-ant-..." />
+            <label class="block text-sm text-text-dim mb-1.5">DeepSeek <span class="text-primary text-xs">(recommended)</span></label>
+            <input
+              v-model="apiKeys.deepseek"
+              type="password"
+              class="input"
+              placeholder="sk-..."
+              autocomplete="off"
+            />
           </div>
           <div>
-            <label class="block text-sm text-text-dim mb-1.5">OpenAI (GPT-4)</label>
-            <input v-model="apiKeys.openai" type="password" class="input" placeholder="sk-..." />
+            <label class="block text-sm text-text-dim mb-1.5">Anthropic (Claude)</label>
+            <input
+              v-model="apiKeys.claude"
+              type="password"
+              class="input"
+              placeholder="sk-ant-..."
+              autocomplete="off"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-text-dim mb-1.5">OpenAI (GPT-4o)</label>
+            <input
+              v-model="apiKeys.gpt4"
+              type="password"
+              class="input"
+              placeholder="sk-..."
+              autocomplete="off"
+            />
           </div>
           <div>
             <label class="block text-sm text-text-dim mb-1.5">Google (Gemini)</label>
-            <input v-model="apiKeys.gemini" type="password" class="input" placeholder="AIza..." />
+            <input
+              v-model="apiKeys.gemini"
+              type="password"
+              class="input"
+              placeholder="AIza..."
+              autocomplete="off"
+            />
+          </div>
+          <div>
+            <label class="block text-sm text-text-dim mb-1.5">Groq</label>
+            <input
+              v-model="apiKeys.groq"
+              type="password"
+              class="input"
+              placeholder="gsk_..."
+              autocomplete="off"
+            />
           </div>
         </div>
 
-        <button @click="saveApiKeys" class="btn btn-primary mt-5">Save API Keys</button>
+        <div class="flex flex-wrap gap-3 mt-5">
+          <button @click="saveApiKeys" class="btn btn-primary">Save API Keys</button>
+          <button type="button" @click="clearApiKeys" class="btn btn-ghost">Clear all</button>
+        </div>
       </div>
 
       <!-- Appearance -->
       <div class="card">
         <h2 class="font-semibold mb-5">Appearance</h2>
-        
+
         <div class="flex gap-4">
-          <button 
-            v-for="t in ['dark', 'dim', 'light']" 
+          <button
+            v-for="t in ['dark', 'dim', 'light']"
             :key="t"
             @click="setTheme(t)"
             class="px-5 py-2 rounded-lg border transition-all flex-1"
@@ -70,17 +116,14 @@ import { ref, onMounted, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useUiStore } from '@/stores/ui';
+import { loadApiKeys, saveApiKeys as persistApiKeys } from '@/lib/apiKeys';
 
 const router = useRouter();
 const authStore = useAuthStore();
 const uiStore = useUiStore();
 
 const name = ref(authStore.user?.name || '');
-const apiKeys = ref({
-  claude: localStorage.getItem('api_claude') || '',
-  openai: localStorage.getItem('api_openai') || '',
-  gemini: localStorage.getItem('api_gemini') || '',
-});
+const apiKeys = ref(loadApiKeys());
 
 const user = computed(() => authStore.user);
 
@@ -97,14 +140,33 @@ async function updateProfile() {
 }
 
 function saveApiKeys() {
-  localStorage.setItem('api_claude', apiKeys.value.claude);
-  localStorage.setItem('api_openai', apiKeys.value.openai);
-  localStorage.setItem('api_gemini', apiKeys.value.gemini);
+  persistApiKeys(apiKeys.value);
+  apiKeys.value = loadApiKeys();
   uiStore.addToast(
-    'Stored in this browser only. Server AI keys still come from server/.env.',
+    'Keys are used when you run a scan with the matching provider.',
     'success',
-    { title: 'Keys saved' }
+    { title: 'API keys saved' }
   );
+}
+
+async function clearApiKeys() {
+  const ok = await uiStore.confirm({
+    title: 'Clear all API keys?',
+    message: 'This removes keys stored in this browser. Server .env keys are not affected.',
+    confirmText: 'Clear keys',
+    cancelText: 'Cancel',
+    variant: 'danger',
+  });
+  if (!ok) return;
+  persistApiKeys({
+    deepseek: '',
+    claude: '',
+    gpt4: '',
+    gemini: '',
+    groq: '',
+  });
+  apiKeys.value = loadApiKeys();
+  uiStore.addToast('Browser API keys cleared.', 'success', { title: 'Cleared' });
 }
 
 onMounted(() => {

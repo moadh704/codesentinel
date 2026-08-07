@@ -6,7 +6,8 @@ import { analyzeCode } from '../services/aiService.js';
 // @access  Private
 export const createScan = async (req, res) => {
   const userId = req.user.id;
-  const { title, language, provider, code } = req.body;
+  // apiKey is optional (from Settings UI). Never persisted — only used for this request.
+  const { title, language, provider, code, apiKey } = req.body;
 
   if (!code || !language || !provider) {
     return res.status(400).json({ error: 'code, language and provider are required' });
@@ -19,10 +20,14 @@ export const createScan = async (req, res) => {
     });
   }
 
+  if (apiKey !== undefined && apiKey !== null && typeof apiKey !== 'string') {
+    return res.status(400).json({ error: 'apiKey must be a string when provided' });
+  }
+
   let scanId;
 
   try {
-    // 1. Create scan record with pending status
+    // 1. Create scan record with pending status (apiKey is never stored)
     const scanResult = await query(
       `INSERT INTO scans (user_id, title, language, provider, code, status) 
        VALUES (?, ?, ?, ?, ?, 'pending')`,
@@ -30,8 +35,8 @@ export const createScan = async (req, res) => {
     );
     scanId = scanResult.insertId;
 
-    // 2. Run AI analysis
-    const vulnerabilities = await analyzeCode(code, language, provider);
+    // 2. Run AI analysis (UI key preferred, then server/.env)
+    const vulnerabilities = await analyzeCode(code, language, provider, apiKey);
 
     // 3. Calculate severity counts
     const counts = {

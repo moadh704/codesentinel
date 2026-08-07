@@ -177,9 +177,15 @@ Starts MySQL (if not already running via XAMPP), API on `:3000`, and UI on `:517
 
 Open **http://127.0.0.1:5173** (prefer `127.0.0.1` over `localhost` if CORS or cookies misbehave).
 
-### Demo mode
+### API keys (Settings UI or `.env`)
 
-If **no** AI provider keys are set in `server/.env`, scans return local mock findings so you can exercise the full UI without paid APIs. Add `DEEPSEEK_API_KEY` (or another provider key) and restart the API for real analysis.
+You can add keys in the app:
+
+1. Log in → **Settings → AI Provider API Keys**
+2. Paste DeepSeek / Claude / OpenAI / Gemini / Groq keys and **Save**
+3. Run a **New Scan** with that provider
+
+Keys stay in the browser (`localStorage`) and are sent only with authenticated scan requests (not stored in the database). If a Settings key is empty, the server falls back to `server/.env`. If neither is set for the chosen provider, scans run in **demo/mock mode**.
 
 ---
 
