@@ -26,9 +26,9 @@
 
 ## What is CodeSentinel?
 
-CodeSentinel is a full-stack AI-powered security code reviewer that helps developers identify vulnerabilities before they reach production.
+CodeSentinel is a full-stack AI-powered security code reviewer that helps developers find vulnerabilities before they reach production.
 
-Paste code (or a snippet), pick a language and AI provider, and get a structured report: severity, type, line references, vulnerable snippets, and fix suggestions — in a Linear-inspired dark UI.
+Paste a code snippet, pick a language and AI provider, and get a structured report: severity, type, line references, vulnerable snippets, and fix suggestions — in a Linear-inspired dark UI.
 
 **Supported providers:** DeepSeek (recommended), Claude, GPT-4o, Gemini, and Groq.
 
@@ -38,29 +38,31 @@ Paste code (or a snippet), pick a language and AI provider, and get a structured
 
 ### Core
 - Multi-provider AI analysis (DeepSeek, Claude, GPT-4o, Gemini, Groq)
-- Local **demo/mock mode** when no API keys are set (UI still fully testable)
-- Detailed vulnerability reports with code snippets and fixes
-- Syntax highlighting for vulnerable code and suggested fixes
-- PDF export of scan reports
+- **API keys via Settings UI** (browser-stored) or `server/.env` fallback
+- Local **demo/mock mode** when no key is available for the chosen provider
+- Detailed vulnerability reports with snippets and recommended fixes
+- Syntax highlighting (Shiki) with plain-text fallback if highlighting fails
+- Print / Save as PDF export for scan reports
 - Dashboard with stats and charts
-- Scan history with filters and search
+- Scan history with filters
 
 ### Auth & Security
-- JWT authentication with 7-day expiry
+- JWT authentication (7-day expiry)
 - bcrypt password hashing (10 rounds)
 - Input validation with express-validator
 - Parameterized SQL queries
 - Rate limiting (general + strict on scans)
 - Helmet security headers
 - Strict CORS
+- Provider keys from the UI are **not** written to the database (sent only with authenticated scan requests)
 
 ### UI & Experience
 - Premium dark UI (Linear-inspired)
 - Split-screen login/register with particle background
 - Theme switcher (Dark / Dim / Light)
-- Collapsible sidebar with larger nav icons
-- Count-up animations on stats
-- Toast notifications and custom confirm dialogs (no browser `alert`/`confirm`)
+- Collapsible sidebar
+- Toast notifications and custom confirm dialogs
+- Resilient scan results page (loads findings even if highlighter is slow)
 
 ---
 
@@ -76,6 +78,7 @@ Paste code (or a snippet), pick a language and AI provider, and get a structured
 | Routing     | Vue Router 4                     |
 | HTTP        | Axios                            |
 | Charts      | ApexCharts + vue3-apexcharts     |
+| Highlight   | Shiki                            |
 | Icons       | lucide-vue-next                  |
 
 **Fonts:** Bricolage Grotesque (headings) · DM Sans (body) · JetBrains Mono (code)
@@ -85,9 +88,9 @@ Paste code (or a snippet), pick a language and AI provider, and get a structured
 |-------------|----------------------------------|
 | Runtime     | Node.js                          |
 | Framework   | Express                          |
-| Database    | MySQL (mysql2)                   |
+| Database    | MySQL / MariaDB (mysql2)         |
 | Auth        | jsonwebtoken + bcryptjs          |
-| AI          | DeepSeek / OpenAI-compatible, Anthropic, OpenAI, Google Generative AI, Groq |
+| AI          | DeepSeek (OpenAI-compatible), Anthropic, OpenAI, Google Generative AI, Groq |
 | Validation  | express-validator                |
 | Security    | helmet, express-rate-limit       |
 
@@ -98,15 +101,18 @@ Paste code (or a snippet), pick a language and AI provider, and get a structured
 ```
 codesentinel/
 ├── client/                 # Vue 3 frontend (Vite)
+│   └── src/
+│       ├── lib/            # axios, apiKeys helpers
+│       ├── views/          # Login, Scan, Settings, Results, …
+│       └── composables/    # e.g. code highlighting
 ├── server/                 # Express backend
 │   ├── src/
 │   │   ├── config/         # DB connection, env
 │   │   ├── controllers/    # Business logic
 │   │   ├── middleware/     # Auth, validation, rate limit
 │   │   ├── routes/         # API routes
-│   │   ├── services/       # AI provider integrations
-│   │   └── utils/
-│   ├── scripts/            # DB init scripts
+│   │   └── services/       # AI provider integrations
+│   ├── scripts/            # DB init (init-db.sql)
 │   ├── package.json
 │   └── .env.example
 ├── start-local.bat         # Windows: start MySQL + API + UI
@@ -120,8 +126,8 @@ codesentinel/
 
 ### Prerequisites
 - Node.js 20+
-- MySQL 8+ (or MariaDB / XAMPP MySQL)
-- Optional: API key for at least one AI provider (DeepSeek recommended)
+- MySQL 8+ or MariaDB (XAMPP MySQL is fine on Windows)
+- Optional: an API key for at least one provider (DeepSeek recommended)
 
 ### 1. Clone & Install
 
@@ -133,36 +139,35 @@ cd codesentinel
 cd server
 npm install
 cp .env.example .env
-# Edit .env with your DB password and optional AI keys
+# Edit .env: DB credentials (+ optional AI keys)
 
 # Frontend
 cd ../client
 npm install
 ```
 
-> On Windows, if peer dependency warnings appear for `vue3-apexcharts`, use:
+> On Windows, if peer dependency warnings appear for `vue3-apexcharts`:
 > `npm install --legacy-peer-deps`
 
 ### 2. Database Setup
 
 ```bash
-# Create database
 mysql -u root -p -e "CREATE DATABASE codesentinel;"
-
-# Run schema (includes deepseek / groq provider enum values)
 mysql -u root -p codesentinel < server/scripts/init-db.sql
 ```
+
+Schema includes providers: `claude`, `gpt4`, `gemini`, `deepseek`, `groq`.
 
 ### 3. Run
 
 **Option A — two terminals**
 
 ```bash
-# Terminal 1: Backend
+# Terminal 1: Backend (http://localhost:3000)
 cd server
 npm run dev
 
-# Terminal 2: Frontend
+# Terminal 2: Frontend (http://localhost:5173)
 cd client
 npm run dev
 ```
@@ -173,19 +178,42 @@ npm run dev
 start-local.bat
 ```
 
-Starts MySQL (if not already running via XAMPP), API on `:3000`, and UI on `:5173`, then opens the login page.
+Starts MySQL (XAMPP if needed), API on `:3000`, UI on `:5173`, and opens the login page.
 
-Open **http://127.0.0.1:5173** (prefer `127.0.0.1` over `localhost` if CORS or cookies misbehave).
+Prefer **http://127.0.0.1:5173** if `localhost` causes CORS quirks.
 
-### API keys (Settings UI or `.env`)
+---
 
-You can add keys in the app:
+## Using the app
 
-1. Log in → **Settings → AI Provider API Keys**
-2. Paste DeepSeek / Claude / OpenAI / Gemini / Groq keys and **Save**
-3. Run a **New Scan** with that provider
+### API keys (recommended path)
 
-Keys stay in the browser (`localStorage`) and are sent only with authenticated scan requests (not stored in the database). If a Settings key is empty, the server falls back to `server/.env`. If neither is set for the chosen provider, scans run in **demo/mock mode**.
+1. Register or log in
+2. Open **Settings → AI Provider API Keys**
+3. Paste keys for the providers you use (DeepSeek, Claude, OpenAI, Gemini, Groq) → **Save**
+4. Go to **New Scan**, pick that provider, paste code → **Analyze**
+
+**Key resolution order for each scan:**
+
+1. Key from Settings (sent with the authenticated request)
+2. Matching key in `server/.env`
+3. Neither → **demo/mock** findings (UI still works)
+
+Keys in Settings stay in the browser (`localStorage`). They are not stored in MySQL.
+
+### Sample vulnerable snippet (for a quick test)
+
+```javascript
+const password = 'admin123';
+const q = "SELECT * FROM accounts WHERE id=" + req.params.id;
+element.innerHTML = req.query.comment;
+```
+
+Language: **JavaScript** · Provider: **DeepSeek** (or any provider you configured).
+
+### Export a report
+
+On a completed scan, use **Export PDF** → browser print dialog → **Save as PDF**.
 
 ---
 
@@ -206,7 +234,7 @@ DB_PORT=3306
 JWT_SECRET=your-super-secret-jwt-key-change-me
 JWT_EXPIRES_IN=7d
 
-# AI Providers (at least one for real scans)
+# AI Providers (optional if keys are set in Settings UI)
 DEEPSEEK_API_KEY=sk-...
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 DEEPSEEK_MODEL=deepseek-chat
@@ -215,7 +243,7 @@ OPENAI_API_KEY=sk-...
 GOOGLE_API_KEY=AIza...
 GROQ_API_KEY=
 
-# CORS
+# CORS (include both hostnames you use)
 FRONTEND_URL=http://localhost:5173,http://127.0.0.1:5173
 ```
 
@@ -227,20 +255,20 @@ Copy from `server/.env.example`. **Never commit** `server/.env`.
 
 - Passwords hashed with bcrypt (10 rounds)
 - JWT with 7-day expiry
-- Rate limiting on all endpoints (strict on scans)
-- Parameterized queries (no SQL injection)
-- Helmet security headers
-- Strict CORS
+- Rate limiting on all endpoints (strict on scan creation)
+- Parameterized queries (no SQL injection in app queries)
+- Helmet security headers + strict CORS
+- UI API keys: browser only + per-request; not persisted server-side
 - Secrets and local debug artifacts are gitignored
 
 ---
 
 ## Development
 
-The project was built step-by-step following a structured plan, then hardened for local Windows/XAMPP setups and multi-provider AI (including DeepSeek).
+Built as a personal security tool and learning project: multi-provider AI, local Windows/XAMPP workflows, and a Settings-first key flow for demos.
 
 **License: Proprietary** — All rights reserved.
 
 ---
 
-Built by [moadh704](https://github.com/moadh704) as a personal security tool and learning project.
+Built by [moadh704](https://github.com/moadh704).
