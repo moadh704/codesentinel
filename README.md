@@ -115,6 +115,8 @@ codesentinel/
 │   ├── scripts/            # DB init (init-db.sql)
 │   ├── package.json
 │   └── .env.example
+├── docs/
+│   └── examples/           # Sample scan report + UI screenshot
 ├── start-local.bat         # Windows: start MySQL + API + UI
 ├── DESIGN.md
 └── README.md
@@ -210,6 +212,19 @@ element.innerHTML = req.query.comment;
 ```
 
 Language: **JavaScript** · Provider: **DeepSeek** (or any provider you configured).
+
+### Sample output
+
+Demo scan against intentionally vulnerable JavaScript (DeepSeek), **9 findings** (hardcoded secrets, SQLi, XSS, SSRF, command injection):
+
+| Artifact | Description |
+|----------|-------------|
+| [docs/examples/sample-ui-results.png](docs/examples/sample-ui-results.png) | Results UI screenshot |
+| [docs/examples/sample-scan-report.pdf](docs/examples/sample-scan-report.pdf) | Exported scan report (print → PDF) |
+
+<p align="center">
+  <img src="docs/examples/sample-ui-results.png" alt="CodeSentinel sample scan results UI" width="720" />
+</p>
 
 ### Export a report
 
