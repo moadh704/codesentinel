@@ -1,3 +1,6 @@
-import app from '../server/src/server.js';
+const ready = import('../server/src/server.js');
 
-export default app;
+module.exports = async (req, res) => {
+  const { default: app } = await ready;
+  return app(req, res);
+};
